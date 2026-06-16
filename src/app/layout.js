@@ -14,6 +14,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Delivery Export — Εξαγωγή CSV για ERP",
   description: "Συμπληρώστε εύκολα τα στοιχεία παράδοσης και εξάγετε αρχείο CSV έτοιμο για εισαγωγή στο ERP. Απλή, γρήγορη φόρμα χωρίς Excel.",
+  icons: {
+    icon: "/ld-favicon.png",
+  },
 };
 
 export default function RootLayout({ children }) {

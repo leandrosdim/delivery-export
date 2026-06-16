@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import { getDeliveryFieldsWithOptions } from "../lib/deliverySchema";
 import { validateDeliveries, hasValidationErrors } from "../lib/validation";
 import { createCsvContent, downloadCsv, createCsvFilename } from "../lib/csvExport";
@@ -156,6 +157,16 @@ export default function Home() {
         <p>
           Για απορίες σχετικά με τα στοιχεία παράδοσης, επικοινωνήστε με την εταιρεία.
         </p>
+        <div className="app-credit">
+          <span>Υλοποίηση</span>
+          <Image
+            src="/Logo.jpg"
+            alt="Leandros Dimitriadis Custom Software Development"
+            width={140}
+            height={140}
+            className="credit-logo"
+          />
+        </div>
       </footer>
     </div>
   );
