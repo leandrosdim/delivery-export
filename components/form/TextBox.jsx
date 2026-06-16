@@ -5,6 +5,7 @@ export default function TextBox({
   name,
   value,
   onChange,
+  onBlur,
   placeholder,
   required,
   error,
@@ -20,6 +21,7 @@ export default function TextBox({
           className="form-input"
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           placeholder={placeholder}
           required={required}
           disabled={disabled}

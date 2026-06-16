@@ -5,6 +5,7 @@ export default function ComboBox({
   name,
   value,
   onChange,
+  onBlur,
   options,
   placeholder,
   required,
@@ -20,6 +21,7 @@ export default function ComboBox({
           className="form-input"
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           required={required}
           disabled={disabled}
           aria-describedby={describedBy}

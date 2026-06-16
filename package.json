@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "inspect:excel": "node scripts/inspect-excel.js",
-    "extract:dropdowns": "node scripts/extract-dropdown-options.js"
+    "extract:dropdowns": "node scripts/extract-dropdown-options.js",
+    "test:csv": "node scripts/test-csv-export.js"
   },
   "dependencies": {
     "next": "16.2.9",

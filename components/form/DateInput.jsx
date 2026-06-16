@@ -5,6 +5,7 @@ export default function DateInput({
   name,
   value,
   onChange,
+  onBlur,
   required,
   error,
   disabled,
@@ -19,6 +20,7 @@ export default function DateInput({
           className="form-input"
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           required={required}
           disabled={disabled}
           aria-describedby={describedBy}
