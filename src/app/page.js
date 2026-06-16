@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import { getDeliveryFieldsWithOptions } from "../lib/deliverySchema";
 import { validateDeliveries, hasValidationErrors } from "../lib/validation";
@@ -13,79 +13,115 @@ import ActionBar from "../../components/layout/ActionBar";
 
 const FIELDS_WITH_OPTIONS = getDeliveryFieldsWithOptions();
 
+const SUMMARY_FIELDS = ["imerominia", "parastatiko", "proorismos", "perioxi"];
+
 export default function Home() {
   const { entries, addEntry, removeEntry, updateEntry, resetEntry, clearAll, count } =
     useDeliveryEntries();
 
+  const [openEntryId, setOpenEntryId] = useState(() => entries[0]._id);
   const [touched, setTouched] = useState({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [validationMessage, setValidationMessage] = useState(null);
   const [exportedFilename, setExportedFilename] = useState(null);
   const errorRef = useRef(null);
-  const firstErrorCardRef = useRef(null);
 
-  const handleFieldBlur = useCallback((entryIndex, fieldKey) => {
+  const allErrors = useMemo(
+    () => validateDeliveries(entries, FIELDS_WITH_OPTIONS),
+    [entries]
+  );
+
+  const getEntryIndex = useCallback(
+    (id) => entries.findIndex((e) => e._id === id),
+    [entries]
+  );
+
+  const handleFieldBlur = useCallback((entryId, fieldKey) => {
     setTouched((prev) => ({
       ...prev,
-      [entryIndex]: {
-        ...(prev[entryIndex] || {}),
+      [entryId]: {
+        ...(prev[entryId] || {}),
         [fieldKey]: true,
       },
     }));
   }, []);
 
   const handleAddEntry = useCallback(() => {
-    addEntry();
+    const newId = addEntry();
+    setOpenEntryId(newId);
     setValidationMessage(null);
     setExportedFilename(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [addEntry]);
 
-  const handleRemoveEntry = useCallback((index) => {
-    removeEntry(index);
-    setTouched((prev) => {
-      const next = {};
-      Object.keys(prev).forEach((k) => {
-        const idx = Number(k);
-        if (idx < index) {
+  const handleRemoveEntry = useCallback(
+    (id) => {
+      const index = getEntryIndex(id);
+      const remaining = entries.filter((e) => e._id !== id);
+      removeEntry(id);
+      setTouched((prev) => {
+        const next = {};
+        Object.keys(prev).forEach((k) => {
+          if (k === id) return;
           next[k] = prev[k];
-        } else if (idx > index) {
-          next[String(idx - 1)] = prev[k];
-        }
+        });
+        return next;
       });
-      return next;
-    });
-    setValidationMessage(null);
-    setExportedFilename(null);
-  }, [removeEntry]);
+      if (openEntryId === id) {
+        if (remaining.length > 0) {
+          const nextEntry = remaining[Math.min(index, remaining.length - 1)];
+          setOpenEntryId(nextEntry._id);
+        } else {
+          setOpenEntryId(null);
+        }
+      }
+      setValidationMessage(null);
+      setExportedFilename(null);
+    },
+    [removeEntry, openEntryId, entries, getEntryIndex]
+  );
 
-  const handleResetEntry = useCallback((index) => {
-    resetEntry(index);
-    setTouched((prev) => {
-      const next = { ...prev };
-      delete next[index];
-      return next;
-    });
-    setValidationMessage(null);
-    setExportedFilename(null);
-  }, [resetEntry]);
+  const handleResetEntry = useCallback(
+    (id) => {
+      resetEntry(id);
+      setTouched((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setValidationMessage(null);
+      setExportedFilename(null);
+    },
+    [resetEntry]
+  );
 
   const handleClearAll = useCallback(() => {
-    clearAll();
+    const freshId = clearAll();
+    setOpenEntryId(freshId);
     setTouched({});
     setSubmitAttempted(false);
     setValidationMessage(null);
     setExportedFilename(null);
   }, [clearAll]);
 
-  const handleUpdateEntry = useCallback((index, fieldKey, value) => {
-    updateEntry(index, fieldKey, value);
-    if (validationMessage?.type === "error") {
-      setValidationMessage(null);
-    }
-  }, [updateEntry, validationMessage]);
+  const handleUpdateEntry = useCallback(
+    (id, fieldKey, value) => {
+      updateEntry(id, fieldKey, value);
+      if (validationMessage?.type === "error") {
+        setValidationMessage(null);
+      }
+    },
+    [updateEntry, validationMessage]
+  );
+
+  const handleToggle = useCallback(
+    (id) => {
+      setOpenEntryId((prev) => (prev === id ? prev : id));
+    },
+    []
+  );
 
   const handleExport = useCallback(() => {
-    const allErrors = validateDeliveries(entries, FIELDS_WITH_OPTIONS);
     setSubmitAttempted(true);
     setExportedFilename(null);
 
@@ -95,6 +131,11 @@ export default function Home() {
         text: "Υπάρχουν πεδία που χρειάζονται διόρθωση",
         detail: "Ελέγξτε τα πεδία με κόκκινο περίγραμμα σε κάθε παράδοση.",
       });
+      const firstErrorId = entries.find((e) => allErrors[entries.indexOf(e)])
+        ?._id;
+      if (firstErrorId) {
+        setOpenEntryId(firstErrorId);
+      }
       if (errorRef.current) {
         errorRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
@@ -110,7 +151,7 @@ export default function Home() {
       detail: `Αρχείο: ${filename}`,
     });
     setExportedFilename(filename);
-  }, [entries]);
+  }, [entries, allErrors]);
 
   return (
     <div className="app">
@@ -135,21 +176,31 @@ export default function Home() {
             </div>
           )}
           <div className="entries-list" role="list" aria-label="Λίστα παραδόσεων">
-            {entries.map((entry, index) => (
-              <DeliveryEntryForm
-                key={index}
-                index={index}
-                entry={entry}
-                fields={FIELDS_WITH_OPTIONS}
-                onUpdate={handleUpdateEntry}
-                onReset={handleResetEntry}
-                onRemove={handleRemoveEntry}
-                canRemove={count > 1}
-                submitAttempted={submitAttempted}
-                touched={touched}
-                onFieldBlur={handleFieldBlur}
-              />
-            ))}
+            {entries.map((entry) => {
+              const index = getEntryIndex(entry._id);
+              const isOpen = openEntryId === entry._id;
+              const entryErrors = allErrors[index];
+              const hasErrors = !!entryErrors && Object.keys(entryErrors).length > 0;
+              return (
+                <DeliveryEntryForm
+                  key={entry._id}
+                  entryId={entry._id}
+                  index={index}
+                  entry={entry}
+                  fields={FIELDS_WITH_OPTIONS}
+                  onUpdate={handleUpdateEntry}
+                  onReset={handleResetEntry}
+                  onRemove={handleRemoveEntry}
+                  canRemove={count > 1}
+                  submitAttempted={submitAttempted}
+                  touched={touched[entry._id] || {}}
+                  onFieldBlur={handleFieldBlur}
+                  isOpen={isOpen}
+                  onToggle={handleToggle}
+                  hasErrors={hasErrors}
+                />
+              );
+            })}
           </div>
         </div>
       </main>

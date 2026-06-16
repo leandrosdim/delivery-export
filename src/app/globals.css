@@ -313,26 +313,57 @@ legend {
   border-color: var(--color-success-border);
 }
 
+.delivery-card--collapsed .delivery-card__header {
+  border-bottom: none;
+}
+
+.delivery-card--open .delivery-card__header {
+  border-bottom: 1px solid var(--color-border);
+}
+
 .delivery-card__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 24px;
+  padding: 14px 24px;
   background: linear-gradient(to right, #f8fafc, #ffffff);
-  border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+}
+
+.delivery-card__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  border-radius: var(--radius-sm);
+}
+
+.delivery-card__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
 }
 
 .delivery-card__title-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .delivery-card__title {
   font-size: 20px;
   font-weight: 700;
   color: var(--color-text);
+  white-space: nowrap;
 }
 
 .delivery-card__status {
@@ -341,6 +372,7 @@ legend {
   padding: 3px 10px;
   border-radius: 100px;
   letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .delivery-card__status--draft {
@@ -358,9 +390,36 @@ legend {
   color: var(--color-success);
 }
 
+.delivery-card__summary {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.delivery-card__chevron {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform var(--transition-base);
+}
+
+.delivery-card--open .delivery-card__chevron {
+  transform: rotate(0deg);
+}
+
+.delivery-card--collapsed .delivery-card__chevron {
+  transform: rotate(0deg);
+}
+
 .delivery-card__actions {
   display: flex;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .delivery-card__body {
@@ -723,10 +782,19 @@ input[type="number"].form-input::-webkit-outer-spin-button {
   }
 
   .delivery-card__header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 16px 20px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .delivery-card__toggle {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .delivery-card__summary {
+    flex-basis: 100%;
+    order: 3;
   }
 
   .delivery-card__body {
@@ -767,6 +835,10 @@ input[type="number"].form-input::-webkit-outer-spin-button {
   .delivery-card__status {
     font-size: 11px;
     padding: 2px 8px;
+  }
+
+  .delivery-card__summary {
+    font-size: 12px;
   }
 
   .field-group__grid {
